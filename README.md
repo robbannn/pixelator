@@ -1,0 +1,2 @@
+# pixelator
+Pixelate an image
