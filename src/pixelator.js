@@ -1,27 +1,54 @@
-function Pixelator(inCanvas, outCanvas){
+function Pixelator(){
     this.image;
-    this.canvasInput = inCanvas;
-    this.outputCanvas = outCanvas;
-    this.ctx = inCanvas.getContext('2d');
-    this.oCtx = this.outputCanvas.getContext('2d');
+    this.canvas;
+    this.ctx;
 
-    this.readImage = function(file){
-        this.image = new Image(300,300);
-        this.image.onload = this._drawInputImage.bind(this);
-        this.image.src = URL.createObjectURL(file);
+    this.pixelate = function(file, opts = {}){
+        return new Promise((resolve, reject) => {
+            this.image = new Image();
+            this.image.onload = () => {
+                this._createCanvas(this.image);
+                this._drawInputImage();
+                this._transform(opts);
+                this._getImage()
+                .then(resolve);
+            };
+            this.image.src = URL.createObjectURL(file);
+        });
+    }
+
+    this._getImage = function(){
+        return new Promise((resolve, reject) => this.canvas.toBlob(blob => resolve(this._blobToFile(blob))));
+    }
+
+    this._blobToFile = function(blob){
+        blob.lastModifiedDate = new Date();
+        blob.name = 'Pixelated.png';
+        return blob;
+    }
+
+    this._createCanvas = function({ width, height }){
+        this.canvas = document.createElement('canvas');
+        this.canvas.style.visibility = 'hidden';
+        this.canvas.style.display = 'none';
+        this.canvas.width = width;
+        this.canvas.height = height;
+
+        this.ctx = this.canvas.getContext('2d');
     }
 
     this._drawInputImage = function(){
         this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
         URL.revokeObjectURL(this.image.src);
-        this.pixelate();
     }
 
-    this.pixelate = function(boxSize = 3){
+    this._transform = function({ boxSize = 10 }){
         let sw = sh = boxSize;
+        let width = this.image.width - (this.image.width % boxSize);
+        let height = this.image.height - (this.image.height % boxSize);
 
-        for(let sy = 0; sy < this.canvasInput.height; sy += boxSize){
-            for(let sx = 0; sx < this.canvasInput.width; sx += boxSize){
+        for(let sy = 0; sy < height; sy += boxSize){
+            for(let sx = 0; sx < width; sx += boxSize){
                 let raw = {
                     r: 0,
                     g: 0,
@@ -40,16 +67,18 @@ function Pixelator(inCanvas, outCanvas){
                     return prev;
                 }, raw);
                 
-                this.getMedianPixel(raw, boxSize);
-                this.drawMedianPixel(raw, sx, sy, sw, sh);
+                this._getMedianPixel(raw, boxSize);
+                this._drawMedianPixel(raw, sx, sy, sw, sh);
             }
         }
     }
 
-    this.drawMedianPixel = function(raw, sx, sy, sw, sh){
-        this.oCtx.fillStyle = `rgba(${raw.r}, ${raw.g}, ${raw.b}, ${raw.a})`;
-        this.oCtx.fillRect(sx, sy, sw, sh);
+    this._drawMedianPixel = function(raw, sx, sy, sw, sh){
+        this.ctx.fillStyle = `rgba(${raw.r}, ${raw.g}, ${raw.b}, ${raw.a})`;
+        this.ctx.fillRect(sx, sy, sw, sh);
     }
 
-    this.getMedianPixel = (raw, boxSize) => Object.keys(raw).forEach(key => raw[key] = Math.floor(raw[key] / (boxSize * boxSize)));
+    this._getMedianPixel = function(raw, boxSize){
+        Object.keys(raw).forEach(key => raw[key] = Math.floor(raw[key] / (boxSize * boxSize)));
+    }
 }
