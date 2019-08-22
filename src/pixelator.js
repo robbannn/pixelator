@@ -1,20 +1,30 @@
 function Pixelator(){
+    this.boxSize;
     this.image;
     this.canvas;
     this.ctx;
+    this.width;
+    this.height;
 
     this.pixelate = function(file, opts = {}){
+        this.boxSize = opts.boxSize || 10;
         return new Promise((resolve, reject) => {
             this.image = new Image();
             this.image.onload = () => {
-                this._createCanvas(this.image);
+                this._setSize(this.image)
+                this._createCanvas();
                 this._drawInputImage();
-                this._transform(opts);
+                this._transform();
                 this._getImage()
                 .then(resolve);
             };
             this.image.src = URL.createObjectURL(file);
         });
+    }
+
+    this._setSize = function({ width, height }){
+        this.width = width - (width % this.boxSize || 10);
+        this.height = height - (height % this.boxSize || 10);
     }
 
     this._getImage = function(){
@@ -27,12 +37,12 @@ function Pixelator(){
         return blob;
     }
 
-    this._createCanvas = function({ width, height }){
+    this._createCanvas = function(){
         this.canvas = document.createElement('canvas');
         this.canvas.style.visibility = 'hidden';
         this.canvas.style.display = 'none';
-        this.canvas.width = width;
-        this.canvas.height = height;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
 
         this.ctx = this.canvas.getContext('2d');
     }
@@ -42,13 +52,11 @@ function Pixelator(){
         URL.revokeObjectURL(this.image.src);
     }
 
-    this._transform = function({ boxSize = 10 }){
-        let sw = sh = boxSize;
-        let width = this.image.width - (this.image.width % boxSize);
-        let height = this.image.height - (this.image.height % boxSize);
+    this._transform = function(){
+        let sw = sh = this.boxSize;
 
-        for(let sy = 0; sy < height; sy += boxSize){
-            for(let sx = 0; sx < width; sx += boxSize){
+        for(let sy = 0; sy < this.height; sy += this.boxSize){
+            for(let sx = 0; sx < this.width; sx += this.boxSize){
                 let raw = {
                     r: 0,
                     g: 0,
@@ -67,7 +75,7 @@ function Pixelator(){
                     return prev;
                 }, raw);
                 
-                this._getMedianPixel(raw, boxSize);
+                this._getMedianPixel(raw);
                 this._drawMedianPixel(raw, sx, sy, sw, sh);
             }
         }
@@ -78,7 +86,7 @@ function Pixelator(){
         this.ctx.fillRect(sx, sy, sw, sh);
     }
 
-    this._getMedianPixel = function(raw, boxSize){
-        Object.keys(raw).forEach(key => raw[key] = Math.floor(raw[key] / (boxSize * boxSize)));
+    this._getMedianPixel = function(raw){
+        Object.keys(raw).forEach(key => raw[key] = Math.floor(raw[key] / (this.boxSize * this.boxSize)));
     }
 }
