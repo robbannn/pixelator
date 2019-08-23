@@ -1,2 +1,9 @@
 # pixelator
-Pixelate an image
+Pixelate an image, with or without grid.
+
+# pixelator API
+---
+**.pixelate()**
+```
+
+```
