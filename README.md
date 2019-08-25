@@ -20,15 +20,13 @@ Pixelate an image, with or without grid.
 
 #### Example use
 ```
-let pixelator = new Pixelator();
-
 let options = {
     boxSize: 50          // Size of the sides of the squares, this will result in 50x50 pixel squares.
     gridSize: 2,         // This will create a 2 pixel wide separation between the boxes. Defaults to 0.
     gridColor: '#ff0000' // This sets the grid color to red.
 };
 
-pixelator.pixelate(file, options).then(resultObject => {
+pixelate(file, options).then(resultObject => {
     let pixelatedFile = resultObject.file;
     let gridFile = resultObject.gridFile; // If options.gridSize < 1 || !options.gridSize,
 });                                       // this will not be generated

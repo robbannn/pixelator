@@ -1,4 +1,4 @@
-function Pixelator(){
+const pixelator = (function (){
     this.boxSize;
     this.image;
     this.canvas;
@@ -15,7 +15,7 @@ function Pixelator(){
             this.image = new Image();
             this.image.onload = () => {
                 this._setSize(this.image)
-                this._createCanvas();
+                this._createCanvas('canvas', 'ctx');
                 this._drawInputImage();
                 this._transform();
                 this._applyGrid(this.image);
@@ -31,7 +31,7 @@ function Pixelator(){
             this.width += this.gridSize * (Math.floor(this.width / this.boxSize) - 1);
             this.height += this.gridSize * (Math.floor(this.height / this.boxSize) - 1);
             
-            this._createGridCanvas();
+            this._createCanvas('gridCanvas', 'gridCtx');
             this._drawGridImage();
         }
     }
@@ -104,24 +104,14 @@ function Pixelator(){
         return blob;
     }
 
-    this._createGridCanvas = function(){
-        this.gridCanvas = document.createElement('canvas');
-        this.gridCanvas.style.visibility = 'hidden';
-        this.gridCanvas.style.display = 'none';
-        this.gridCanvas.width = this.width;
-        this.gridCanvas.height = this.height;
+    this._createCanvas = function(canvasName, ctxName){
+        this[canvasName] = document.createElement('canvas');
+        this[canvasName].style.visibility = 'hidden';
+        this[canvasName].style.display = 'none';
+        this[canvasName].width = this.width;
+        this[canvasName].height = this.height;
 
-        this.gridCtx = this.gridCanvas.getContext('2d');
-    }
-
-    this._createCanvas = function(){
-        this.canvas = document.createElement('canvas');
-        this.canvas.style.visibility = 'hidden';
-        this.canvas.style.display = 'none';
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-
-        this.ctx = this.canvas.getContext('2d');
+        this[ctxName] = this[canvasName].getContext('2d');
     }
 
     this._drawInputImage = function(){
@@ -170,4 +160,6 @@ function Pixelator(){
     this._getMedianPixel = function(raw){
         Object.keys(raw).forEach(key => raw[key] = Math.floor(raw[key] / (this.boxSize * this.boxSize)));
     }
-}
+
+    return { pixelate: pixelate }
+})();
