@@ -9,8 +9,7 @@ function Pixelator(){
     this.height;
 
     this.pixelate = function(file, opts = {}){
-        this.boxSize = opts.boxSize || 10;
-        this.gridSize = opts.gridSize && opts.gridSize > 0 ? opts.gridSize : 0;
+        this._applyOptions(opts);
 
         return new Promise((resolve, reject) => {
             this.image = new Image();
@@ -37,8 +36,15 @@ function Pixelator(){
         }
     }
 
+    this._applyOptions = function(opts){
+        this.boxSize = opts.boxSize || 10;
+        this.gridSize = opts.gridSize && opts.gridSize > 0 ? opts.gridSize : 0;
+        this.gridColor = opts.gridColor ? opts.gridColor : 'transparent';
+    }
+
     this._drawGridImage = function(){
         let w = h = this.boxSize;
+        this._drawGridBackgound();
 
         for(let y = 0, y2 = 0; y < this.height; y += this.boxSize, y2++){
             for(let x = 0, x2 = 0; x < this.width; x += this.boxSize, x2++){
@@ -53,6 +59,11 @@ function Pixelator(){
                 this._drawGridBox(raw, x + x2 * this.gridSize, y + y2 * this.gridSize, w, h);
             }
         }
+    }
+
+    this._drawGridBackgound = function(){
+        this.gridCtx.fillStyle = this.gridColor;
+        this.gridCtx.fillRect(0, 0, this.width, this.height);
     }
 
     this._drawGridBox = function(raw, x, y, w, h){
