@@ -1,11 +1,11 @@
 # pixelator
 Pixelate an image, with or without grid.
 
-# pixelator API
+## pixelator API
 ---
-###pixelate(file, ?options) => Promise()###
+### pixelate(file, ?options) => Promise()
 
-####Parameters####
+#### Parameters
 file    - (`File`) The image to pixelate
 options - (Object) Optional. 
 
@@ -24,7 +24,7 @@ pixelator.pixelate(file, options).then(resultObject => {
 
 ```
 
-####Return type####
+#### Return type
 `Promise({ file: File, ?gridFile: File })`
 
 `file`     - The pixelated file
