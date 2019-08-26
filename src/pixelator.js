@@ -1,54 +1,54 @@
 const pixelator = (function (){
-    this.boxSize;
-    this.image;
-    this.canvas;
-    this.gridCanvas;
-    this.ctx;
-    this.gridCtx;
-    this.width;
-    this.height;
+    let boxSize, 
+    image,
+    canvas = document.createElement('canvas'),
+    gridCanvas = document.createElement('canvas'),
+    ctx = canvas.getContext('2d'),
+    gridCtx = gridCanvas.getContext('2d'),
+    _width,
+    _height;
 
-    this.pixelate = function(file, opts = {}){
-        this._applyOptions(opts);
-
+    pixelate = function(file, opts = {}){
+        _applyOptions(opts);
+        
         return new Promise((resolve, reject) => {
-            this.image = new Image();
-            this.image.onload = () => {
-                this._setSize(this.image)
-                this._createCanvas('canvas', 'ctx');
-                this._drawInputImage();
-                this._transform();
-                this._applyGrid(this.image);
-                this._getImage()
+            image = new Image();
+            image.onload = () => {
+                _setSize(image)
+                _createCanvas(canvas, ctx);
+                _drawInputImage();
+                _transform();
+                _applyGrid(image);
+                _getImage()
                 .then(resolve);
             };
-            this.image.src = URL.createObjectURL(file);
+            image.src = URL.createObjectURL(file);
         });
-    }
+    },
 
-    this._applyGrid = function({ width, height }){
-        if(this.gridSize){
-            this.width += this.gridSize * (Math.floor(this.width / this.boxSize) - 1);
-            this.height += this.gridSize * (Math.floor(this.height / this.boxSize) - 1);
+    _applyGrid = function(){
+        if(gridSize){
+            _width += gridSize * (Math.floor(_width / boxSize) - 1);
+            _height += gridSize * (Math.floor(_height / boxSize) - 1);
             
-            this._createCanvas('gridCanvas', 'gridCtx');
-            this._drawGridImage();
+            _createCanvas(gridCanvas, gridCtx);
+            _drawGridImage();
         }
-    }
+    },
 
-    this._applyOptions = function(opts){
-        this.boxSize = opts.boxSize || 10;
-        this.gridSize = opts.gridSize && opts.gridSize > 0 ? opts.gridSize : 0;
-        this.gridColor = opts.gridColor ? opts.gridColor : 'transparent';
-    }
+    _applyOptions = function(opts){
+        boxSize = opts.boxSize || 10;
+        gridSize = opts.gridSize && opts.gridSize > 0 ? opts.gridSize : 0;
+        gridColor = opts.gridColor ? opts.gridColor : 'transparent';
+    },
 
-    this._drawGridImage = function(){
-        let w = h = this.boxSize;
-        this._drawGridBackgound();
+    _drawGridImage = function(){
+        let w = h = boxSize;
+        _drawGridBackgound();
 
-        for(let y = 0, y2 = 0; y < this.height; y += this.boxSize, y2++){
-            for(let x = 0, x2 = 0; x < this.width; x += this.boxSize, x2++){
-                let d = this.ctx.getImageData(x, y, 1, 1).data;
+        for(let y = 0, y2 = 0; y < _height; y += boxSize, y2++){
+            for(let x = 0, x2 = 0; x < _width; x += boxSize, x2++){
+                let d = ctx.getImageData(x, y, 1, 1).data;
                 let raw = {
                     r: d[0],
                     g: d[1],
@@ -56,32 +56,32 @@ const pixelator = (function (){
                     a: d[3]
                 };
                 
-                this._drawGridBox(raw, x + x2 * this.gridSize, y + y2 * this.gridSize, w, h);
+                _drawGridBox(raw, x + x2 * gridSize, y + y2 * gridSize, w, h);
             }
         }
-    }
+    },
 
-    this._drawGridBackgound = function(){
-        this.gridCtx.fillStyle = this.gridColor;
-        this.gridCtx.fillRect(0, 0, this.width, this.height);
-    }
+    _drawGridBackgound = function(){
+        gridCtx.fillStyle = gridColor;
+        gridCtx.fillRect(0, 0, _width, _height);
+    },
 
-    this._drawGridBox = function(raw, x, y, w, h){
-        this.gridCtx.fillStyle = `rgba(${raw.r}, ${raw.g}, ${raw.b}, ${raw.a})`;
-        this.gridCtx.fillRect(x, y, w, h);
-    }
+    _drawGridBox = function(raw, x, y, w, h){
+        gridCtx.fillStyle = `rgba(${raw.r}, ${raw.g}, ${raw.b}, ${raw.a})`;
+        gridCtx.fillRect(x, y, w, h);
+    },
 
-    this._setSize = function({ width, height }){
-        this.width = width - (width % this.boxSize);
-        this.height = height - (height % this.boxSize);
-    }
+    _setSize = function({ width, height }){
+        _width = width - (width % boxSize);
+        _height = height - (height % boxSize);
+    },
 
-    this._getImage = function(){
+    _getImage = function(){
         return new Promise((resolve, reject) => {
-            this.canvas.toBlob(blob => {
-                let file = this._blobToFile(blob, 'Pxl.png');
-                if(this.gridSize){
-                    gridFile = this._getGridImage().then(gf => {
+            canvas.toBlob(blob => {
+                let file = _blobToFile(blob, 'Pxl.png');
+                if(gridSize){
+                    gridFile = _getGridImage().then(gf => {
                         resolve({ file: file, gridFile: gf });
                     });
                 }
@@ -90,58 +90,55 @@ const pixelator = (function (){
                 }                  
             });
         });
-    }
+    },
 
-    this._getGridImage = function(){
+    _getGridImage = function(){
         return new Promise(resolve => {
-            this.gridCanvas.toBlob(gridBlob => resolve(this._blobToFile(gridBlob, 'PxlGrd.png')));
+            gridCanvas.toBlob(gridBlob => resolve(_blobToFile(gridBlob, 'PxlGrd.png')));
         });
-    }
+    },
 
-    this._blobToFile = function(blob, name){
+    _blobToFile = function(blob, name){
         blob.lastModifiedDate = new Date();
         blob.name = name;
         return blob;
-    }
+    },
 
-    this._createCanvas = function(canvasName, ctxName){
-        this[canvasName] = document.createElement('canvas');
-        this[canvasName].style.visibility = 'hidden';
-        this[canvasName].style.display = 'none';
-        this[canvasName].width = this.width;
-        this[canvasName].height = this.height;
+    _createCanvas = function(_canvas, _ctx){
+        _canvas.style.visibility = 'hidden';
+        _canvas.style.display = 'none';
+        _canvas.width = _width;
+        _canvas.height = _height;
+    },
 
-        this[ctxName] = this[canvasName].getContext('2d');
-    }
+    _drawInputImage = function(){
+        ctx.drawImage(image, 0, 0, image.width, image.height);
+        URL.revokeObjectURL(image.src);
+    },
 
-    this._drawInputImage = function(){
-        this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
-        URL.revokeObjectURL(this.image.src);
-    }
+    _transform = function(){
+        let sw = sh = boxSize;
 
-    this._transform = function(){
-        let sw = sh = this.boxSize;
-
-        for(let sy = 0; sy < this.height; sy += this.boxSize){
-            for(let sx = 0; sx < this.width; sx += this.boxSize){
-                this._transformPixel(sx, sy, sw, sh);
+        for(let sy = 0; sy < _height; sy += boxSize){
+            for(let sx = 0; sx < _width; sx += boxSize){
+                _transformPixel(sx, sy, sw, sh);
             }
         }
-    }
+    },
 
-    this._transformPixel = function(sx, sy, sw, sh){
+    _transformPixel = function(sx, sy, sw, sh){
         let raw = {
             r: 0,
             g: 0,
             b: 0,
             a: 0
         };
-        this.ctx.getImageData(sx, sy, sw, sh).data.reduce(this._sumPixels.bind(this), raw);
-        this._getMedianPixel(raw);
-        this._drawMedianPixel(raw, sx, sy, sw, sh);
-    }
+        ctx.getImageData(sx, sy, sw, sh).data.reduce(_sumPixels, raw);
+        _getMedianPixel(raw);
+        _drawMedianPixel(raw, sx, sy, sw, sh);
+    },
 
-    this._sumPixels = function(prev, curr, i){
+    _sumPixels = function(prev, curr, i){
         let type = i % 4;
         switch(type){
             case 0: prev.r += curr; break;
@@ -150,16 +147,16 @@ const pixelator = (function (){
             case 3: prev.a += curr; break;
         }
         return prev;
-    }
+    },
 
-    this._drawMedianPixel = function(raw, sx, sy, sw, sh){
-        this.ctx.fillStyle = `rgba(${raw.r}, ${raw.g}, ${raw.b}, ${raw.a})`;
-        this.ctx.fillRect(sx, sy, sw, sh);
-    }
+    _drawMedianPixel = function(raw, sx, sy, sw, sh){
+        ctx.fillStyle = `rgba(${raw.r}, ${raw.g}, ${raw.b}, ${raw.a})`;
+        ctx.fillRect(sx, sy, sw, sh);
+    },
 
-    this._getMedianPixel = function(raw){
-        Object.keys(raw).forEach(key => raw[key] = Math.floor(raw[key] / (this.boxSize * this.boxSize)));
-    }
+    _getMedianPixel = function(raw){
+        Object.keys(raw).forEach(key => raw[key] = Math.floor(raw[key] / (boxSize * boxSize)));
+    };
 
     return { pixelate: pixelate }
 })();
