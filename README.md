@@ -3,7 +3,7 @@ Pixelate an image, with or without grid.
 
 ## pixelator API
 ---
-### pixelate(file, ?options) => Promise()
+### pixelate(file, ?options) => Promise({ File, ?File})
 
 #### Parameters
 * `file`    - (`File`) The image to pixelate.
@@ -26,7 +26,7 @@ let options = {
     gridColor: '#ff0000' // This sets the grid color to red.
 };
 
-pixelate(file, options).then(resultObject => {
+pixelator.pixelate(file, options).then(resultObject => {
     let pixelatedFile = resultObject.file;
     let gridFile = resultObject.gridFile; // If options.gridSize < 1 || !options.gridSize,
 });                                       // this will not be generated
