@@ -1,6 +1,11 @@
 # pixelator
 Pixelate an image, with or without grid.
 
+Example:
+![Original image](https://robbannn-github-resources.s3.eu-central-1.amazonaws.com/pixelator/original.jpg "Original image") ![Pixelated image](https://robbannn-github-resources.s3.eu-central-1.amazonaws.com/pixelator/pixelated.png "Pixelated image") ![Pixelated grid image](https://robbannn-github-resources.s3.eu-central-1.amazonaws.com/pixelator/pixelated-grid.png "Pixelated grid image")
+
+"Why something like pixelator", you might ask... "Why not?", is my answer :)
+
 ## pixelator API
 ---
 ### pixelate(file, ?options) => Promise({ File, ?File})
